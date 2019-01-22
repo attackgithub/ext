@@ -21,6 +21,7 @@ type RouterRulesConfig struct {
 type BalancingRule struct {
 	Tag       string     `json:"tag"`
 	Selectors StringList `json:"selector"`
+	Strategy  string     `json:"strategy"`
 }
 
 func (r *BalancingRule) Build() (*router.BalancingRule, error) {
@@ -30,10 +31,15 @@ func (r *BalancingRule) Build() (*router.BalancingRule, error) {
 	if len(r.Selectors) == 0 {
 		return nil, newError("empty selector list")
 	}
+	bs := router.BalancingRule_Random
+	if r.Strategy == "latency" {
+		bs = router.BalancingRule_Latency
+	}
 
 	return &router.BalancingRule{
-		Tag:              r.Tag,
-		OutboundSelector: []string(r.Selectors),
+		Tag:               r.Tag,
+		OutboundSelector:  []string(r.Selectors),
+		BalancingStrategy: bs,
 	}, nil
 }
 
